@@ -100,17 +100,17 @@ std::vector<Alignment> global_alignment_linear_gap_penalty(char const * seq1, in
             int i2 = backtraces[i].i2;
             AlignmentDirection alignDir = dir[i1][i2];
 
-            if (alignDir & leftAlign == leftAlign) {
-                backtraces[i].alignment1.push_back(seq1[i1]);
-                backtraces[i].alignment2.push_back('-');
-                if (alignDir & upAlign == upAlign) {
+            if ((alignDir & leftAlign) == leftAlign) {
+                backtraces[i].alignment1.push_back('-');
+                backtraces[i].alignment2.push_back(seq2[i2]);
+                if ((alignDir & upAlign) == upAlign) {
                     AlignmentBacktrace newTrace(backtraces[i]);
-                    newTrace.alignment1.push_back('-');
-                    newTrace.alignment2.push_back(seq2[i2]);
+                    newTrace.alignment1.push_back(seq1[i1]);
+                    newTrace.alignment2.push_back('-');
                     newTrace.i1--;
                     backtraces.push_back(newTrace);
                 }
-                if (alignDir & diagAlign == diagAlign) {
+                if ((alignDir & diagAlign) == diagAlign) {
                     AlignmentBacktrace newTrace(backtraces[i]);
                     newTrace.alignment1.push_back(seq1[i1]);
                     newTrace.alignment2.push_back(seq2[i2]);
@@ -120,11 +120,10 @@ std::vector<Alignment> global_alignment_linear_gap_penalty(char const * seq1, in
                 }
                 backtraces[i].i2--;
             }
-            else if (alignDir & upAlign == upAlign) {
-                backtraces[i].alignment1.push_back('-');
-                backtraces[i].alignment2.push_back(seq2[i2]);
-                backtraces[i].i1--;
-                if (alignDir & diagAlign == diagAlign) {
+            else if ((alignDir & upAlign) == upAlign) {
+                backtraces[i].alignment1.push_back(seq1[i1]);
+                backtraces[i].alignment2.push_back('-');
+                if ((alignDir & diagAlign) == diagAlign) {
                     AlignmentBacktrace newTrace(backtraces[i]);
                     newTrace.alignment1.push_back(seq1[i1]);
                     newTrace.alignment2.push_back(seq2[i2]);
@@ -132,6 +131,7 @@ std::vector<Alignment> global_alignment_linear_gap_penalty(char const * seq1, in
                     newTrace.i2--;
                     backtraces.push_back(newTrace);
                 }
+                backtraces[i].i1--;
             }
             else { //alignDir contains diagAlign
                 backtraces[i].alignment1.push_back(seq1[i1]);
