@@ -1,5 +1,5 @@
-#ifndef MATCH_SCORERS_hpp
-#define MATCH_SCORERS_hpp
+#ifndef MATCH_SCORERS_H
+#define MATCH_SCORERS_H
 
 #include <map>
 
@@ -13,6 +13,7 @@ class MatchScorer {
           \return alignment score for given elements
         */
         virtual double getScore(char el1, char el2) const = 0;
+        virtual ~MatchScorer() {}
 };
 
 /*! A match score is the score of identical elements, otherwise mismatch score */
@@ -23,6 +24,7 @@ class ConstMatchScorer : public MatchScorer {
     public:
         ConstMatchScorer(double, double);
         double getScore(char el1, char el2) const;
+        ConstMatchScorer() {}
 };
 
 /*! A match score is based on dictionary, where each pair of characters has its score */
@@ -33,6 +35,7 @@ class DictMatchScorer : public MatchScorer {
     public:
         DictMatchScorer(std::map<char, int>, double**);
         double getScore(char el1, char el2) const;
+        DictMatchScorer() {}
 };
 
 /*! A match score is a result of a callback function */
@@ -41,7 +44,8 @@ class CallbackMatchScorer : public MatchScorer {
         double(*scoreCallback)(char, char);
     public:
         CallbackMatchScorer(double(*)(char, char));
-        double getScore(char el1, char el2) const;
+        double getScore(ConstMatchScochar el1, char el2) const;
+        CallbackMatchScorer() {}
 };
 
 

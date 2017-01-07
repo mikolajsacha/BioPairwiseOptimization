@@ -1,5 +1,5 @@
-#ifndef GLOBAL_ALIGNMENT_hpp
-#define GLOBAL_ALIGNMENT_hpp
+#ifndef GLOBAL_ALIGNMENT_H
+#define GLOBAL_ALIGNMENT_H
 
 #include "match_scorers.h"
 #include "model.h"
@@ -15,6 +15,6 @@
   \param penalty penalty for a gap
   \return vector of alignments with best score
 */
-std::vector<Alignment> global_alignment_linear_gap_penalty(char const *seq1, int len1, char const *seq2, int len2, MatchScorer* scorer, double penalty);
+std::vector<Alignment> global_alignment_linear_gap_penalty(char const *seq1, unsigned len1, char const *seq2, unsigned len2, MatchScorer* scorer, double penalty);
 
 #endif
