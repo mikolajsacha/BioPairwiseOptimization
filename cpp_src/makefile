@@ -21,13 +21,13 @@ DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 $(ODIR)/%.o: $(LDIR)/%.cpp $(DEPS)
 	$(CXX) -c -o $@ $< $(CXXFLAGS)
 
-makeall: maketests makedll
+makeall: maketests makelib
 	
 maketests: $(OBJS)
-	$(CXX) -o runtests $(OBJS) $(CXXFLAGS) $(LIBS) -v
+	$(CXX) -o runtests $(OBJS) $(CXXFLAGS) $(LIBS)
 
-makedll: $(OBJS) 
-	$(CXX) $(INTDIR)/integration.cpp -lboost_python -lpython2.7 -I /usr/include/python2.7/ -o pairwise.so -shared $(CXXFLAGS) $(LIBS) -fPIC -static-libstdc++ -v
+makelib: $(OBJS) 
+	$(CXX) $(INTDIR)/integration.cpp -lboost_python -lpython2.7 -I /usr/include/python2.7/ -o ../python_src/pairwise.so -shared $(CXXFLAGS) $(LIBS) -fPIC -static-libstdc++
 .PHONY: clean
 
 clean:
