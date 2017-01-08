@@ -3,9 +3,10 @@ CXXFLAGS=-std=c++14 -W -Wall -Werror -pedantic -Wextra
 
 ODIR=obj
 LDIR=lib
+SODIR=../lib
 IDIR=include
-TESTSDIR=tests
-INTDIR=integration
+TDIR=../test
+LIBNAME=pairwise.so
 
 PYTHON_VERSION = 2.7
 PYTHON_INCLUDE = /usr/include/python$(PYTHON_VERSION)
@@ -18,16 +19,16 @@ OBJS = $(patsubst %,$(ODIR)/%,$(_OBJS))
 _DEPS = match_scorers.h global_alignment.h model.h 
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
-$(ODIR)/%.o: $(LDIR)/%.cpp $(DEPS)
+$(ODIR)/%.o: $(LDIR)/%.cpp $(TESTSDIR)/%.cpp $(DEPS)
 	$(CXX) -c -o $@ $< $(CXXFLAGS) -fPIC
 
-makeall: maketests makelib
-	
-maketests: $(OBJS)
-	$(CXX) -o runtests $(OBJS) $(CXXFLAGS) $(LIBS) -fPIC
-
 makelib: $(OBJS) 
-	$(CXX) $(INTDIR)/integration.cpp -lboost_python -lpython2.7 -I /usr/include/python2.7/ -o ../python_src/pairwise.so $(OBJS) -shared $(CXXFLAGS) $(LIBS) -fPIC -static-libstdc++
+	$(CXX) $(LDIR)/integration.cpp -lboost_python -lpython2.7 -I /usr/include/python2.7/ -o $(SODIR)/$(LIBNAME) $(OBJS) -shared $(CXXFLAGS) $(LIBS) -fPIC -static-libstdc++
+
+# copy compiled library to test folder for testing
+# $(SODIR)/$(LIBNAME):
+    # cp -f $(SODIR)/$(LIBNAME) $(TDIR)/$(LIBNAME)
+
 .PHONY: clean
 
 clean:
