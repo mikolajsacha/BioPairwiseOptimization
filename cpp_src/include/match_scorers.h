@@ -44,7 +44,7 @@ class CallbackMatchScorer : public MatchScorer {
         double(*scoreCallback)(char, char);
     public:
         CallbackMatchScorer(double(*)(char, char));
-        double getScore(ConstMatchScochar el1, char el2) const;
+        double getScore(char el1, char el2) const;
         CallbackMatchScorer() {}
 };
 
