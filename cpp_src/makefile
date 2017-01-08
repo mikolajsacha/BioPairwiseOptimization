@@ -19,15 +19,15 @@ _DEPS = match_scorers.h global_alignment.h model.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
 $(ODIR)/%.o: $(LDIR)/%.cpp $(DEPS)
-	$(CXX) -c -o $@ $< $(CXXFLAGS)
+	$(CXX) -c -o $@ $< $(CXXFLAGS) -fPIC
 
 makeall: maketests makelib
 	
 maketests: $(OBJS)
-	$(CXX) -o runtests $(OBJS) $(CXXFLAGS) $(LIBS)
+	$(CXX) -o runtests $(OBJS) $(CXXFLAGS) $(LIBS) -fPIC
 
 makelib: $(OBJS) 
-	$(CXX) $(INTDIR)/integration.cpp -lboost_python -lpython2.7 -I /usr/include/python2.7/ -o ../python_src/pairwise.so -shared $(CXXFLAGS) $(LIBS) -fPIC -static-libstdc++
+	$(CXX) $(INTDIR)/integration.cpp -lboost_python -lpython2.7 -I /usr/include/python2.7/ -o ../python_src/pairwise.so $(OBJS) -shared $(CXXFLAGS) $(LIBS) -fPIC -static-libstdc++
 .PHONY: clean
 
 clean:

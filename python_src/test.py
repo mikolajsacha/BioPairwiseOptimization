@@ -1,3 +1,3 @@
 import pairwise
 
-print pairwise.greet()
+print pairwise.globalxx("ACCGT", "ACG")
