@@ -22,6 +22,7 @@ DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 all: makelib copyfiles
 
 makelib: $(OBJS) 
+	@mkdir -p $(SODIR)
 	$(CXX) -lboost_python -lpython2.7 -I /usr/include/python2.7/ -o $(SODIR)/$(LIBNAME).so $(OBJS) -shared $(CXXFLAGS) $(LIBS) -fPIC -static-libstdc++
 
 $(ODIR)/%.o: $(LDIR)/%.cpp $(DEPS)
