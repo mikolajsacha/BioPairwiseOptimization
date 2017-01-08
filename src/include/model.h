@@ -30,6 +30,8 @@ struct AlignmentBacktrace {
     int i1; /*!< Current index on first sequence axis */
     int i2; /*!< Current index on second sequence axis */
     bool isFinished; /*!< Marks that current alignment has finished backtracing */
+    int begin; /*!< Index where alignment begins */
+    int end; /*!< Index where alignment ends */
 };
 
 #endif
