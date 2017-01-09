@@ -1,6 +1,8 @@
 #ifndef MODEL_H
 #define MODEL_H
 
+#define MAX_ALIGNMENTS 1000 // same as in bio.pairwise2
+
 #include <string>
 
 /*! An Alignment result. Matches format of results in Bio.pairwise2 module */

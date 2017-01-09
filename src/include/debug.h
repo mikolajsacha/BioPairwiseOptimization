@@ -1,7 +1,7 @@
 #ifndef DEBUG_H
 #define DEBUG_H
 
-#define DEBUG_MODE // Comment/uncomment this line to toggle debug mode
+// #define DEBUG_MODE // Comment/uncomment this line to toggle debug mode
 // #define TRACE_DEBUG_MODE // Comment/uncomment for very verbose debug messages
 
 #if defined DEBUG_MODE || defined TRACE_DEBUG_MODE
