@@ -16,7 +16,7 @@ LIBS=-lm
 _OBJS = integration.o match_scorers.o global_alignment.o
 OBJS = $(patsubst %,$(ODIR)/%,$(_OBJS))
 
-_DEPS = match_scorers.h global_alignment.h model.h 
+_DEPS = match_scorers.h global_alignment.h model.h debug.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
 all: makelib copyfiles
