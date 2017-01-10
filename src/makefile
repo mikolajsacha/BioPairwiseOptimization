@@ -26,6 +26,7 @@ makelib: $(OBJS)
 	$(CXX) -lboost_python -lpython2.7 -I /usr/include/python2.7/ -o $(SODIR)/$(LIBNAME).so $(OBJS) -shared $(CXXFLAGS) $(LIBS) -fPIC -static-libstdc++
 
 $(ODIR)/%.o: $(LDIR)/%.cpp $(DEPS)
+	@mkdir -p $(ODIR)
 	$(CXX) -c -o $@ $< $(CXXFLAGS) -fPIC
 
 # copy compiled library to test folder for testing
@@ -35,4 +36,4 @@ copyfiles:
 .PHONY: clean
 
 clean:
-	rm -f $(ODIR)/*.o *~ core $(INCDIR)/*~ $(SODIR)*.so 
+	rm -f $(ODIR)/*.o *~ core $(INCDIR)/*~ $(SODIR)/*.so $(TDIR)/*.so 

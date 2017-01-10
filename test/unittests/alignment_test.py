@@ -11,12 +11,27 @@ TEST_DATA_FOLDER = 'testdata'
 DISPLAY_ALIGNMENT_LENGTH = 30
 GAP_SYMBOL = '-'
 
-def test_sequences_pairs():
+def get_all_files(directory, extension):
+    """
+    Returns generator of all files with provided extension from given directory
+    """
+    return (f for f in listdir(directory) if f.endswith(extension) and isfile(join(directory, f)))
+
+def get_all_sequences(directory):
+    """
+    Returns all test sequences from given folder
+    """
+    files = get_all_files(directory, 'fasta')
+    return (tuple([f] + [str(s.seq) for s in SeqIO.parse(join(directory, f), 'fasta')]) for f in files)
+
+def test_sequences_pairs(include_trivial=False):
     """
     Returns generator of all test data (as tuple: (filename, seq1, seq2)) that we have stored in testdata folder
     """
-    seq_files = (f for f in listdir(TEST_DATA_FOLDER) if f.endswith('fasta') and isfile(join(TEST_DATA_FOLDER, f)))
-    return (tuple([f] + [str(s.seq) for s in SeqIO.parse(join(TEST_DATA_FOLDER, f), 'fasta')]) for f in seq_files)
+    test_data = list(get_all_sequences(TEST_DATA_FOLDER))
+    if include_trivial:
+        test_data.extend(list(get_all_sequences(TEST_DATA_FOLDER + '/trivial')))
+    return test_data
 
 
 def shorten_string(string, max_length):
@@ -56,19 +71,3 @@ class AlignmentTest(unittest.TestCase):
             print '\n'.join(format_alignment(*al) for al in our_alignments)
             print "Bio alignments:"
             print '\n'.join(format_alignment(*al) for al in bio_alignments)
-
-
-
-def suite():
-    """ Forms a test suite out of all test cases """
-    t_suite = unittest.TestSuite()
-    globalxx_tests = ['test_lengths', 'test_trailing_gaps', 'test_score_correctness', 'test_compare_bio_scores']
-    for filename, seq1, seq2 in test_sequences_pairs():
-        for testname in globalxx_tests:
-            t_suite.addTest(TestGlobalxx(testname, filename, seq1, seq2))
-    return t_suite
-
-
-if __name__ == "__main__":
-    # print_alignments()
-    unittest.TextTestRunner().run(suite())

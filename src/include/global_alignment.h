@@ -21,13 +21,21 @@ class GlobalAlignment {
         */
         GlobalAlignment(std::string seq1, std::string seq2);
 
-        /*! Returns best global alignment score with a linear gap penalty and given score method */
+        /*! Returns all alignments for already populated grid and dir matrices */
         /*!
-          \param scorer a MatchScorer class
-          \param penalty penalty for a gap
           \return vector of alignments with best score
         */
-        std::vector<Alignment> align_linear_gap_penalty(MatchScorer* scorer, double penalty);
+        std::vector<Alignment> backtrace_alignments();
+
+        /*! returns best alignment score (value in right-bottom corner of grid matrx) */
+        double get_score();
+
+        /*! runs dynamic Needleman - Wunsch algorithm populating grid and dir matrices */
+        /*!
+          \param scorer a MatchScorer object
+          \param penalty a linear gap penalty
+        */
+        void populate_matrix_linear_gap_penalty(MatchScorer* scorer, double penalty);
 };
 
 
