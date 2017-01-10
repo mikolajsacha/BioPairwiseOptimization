@@ -57,6 +57,7 @@ class TestGlobalxx(AlignmentTest):
                     if al1[i] == al2[i]:
                         calc_score += 1
 
+
                 self.assertEqual(score, calc_score)
 
         except AssertionError as err:
@@ -99,7 +100,7 @@ class TestGlobalxx(AlignmentTest):
     def get_test_suite():
         """ Forms a test suite out of all test cases """
         t_suite = unittest.TestSuite()
-        globalxx_tests = ['test_lengths', 'test_trailing_gaps', 'test_score_correctness', 'test_compare_bio_scores']
+        globalxx_tests = ['test_lengths', 'test_trailing_gaps', 'test_score_correctness', 'test_compare_bio_scores', 'test_compare_bio_lengths']
         for filename, seq1, seq2 in test_sequences_pairs(include_trivial=True):
             for testname in globalxx_tests:
                 t_suite.addTest(TestGlobalxx(testname, filename, seq1, seq2))
