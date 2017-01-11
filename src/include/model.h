@@ -19,8 +19,8 @@ struct Alignment {
     std::string sequence1; /*!< First sequence in aligned format (with hyphens as gaps) */
     std::string sequence2; /*!< Second sequence in aligned format (with hyphens as gaps) */
     float score; /*! Score for this alignment */
-    int begin; /*!< Index where alignment begins */
-    int end; /*!< Index where alignment ends */
+    unsigned begin; /*!< Index where alignment begins */
+    unsigned end; /*!< Index where alignment ends */
 };
 
 
@@ -29,6 +29,7 @@ struct AlignmentBacktrace {
     Alignment alignment;
     int i1; /*!< Current index on first sequence axis */
     int i2; /*!< Current index on second sequence axis */
+    char trace; /*< Cached value from trace matrix */
 };
 
 #endif

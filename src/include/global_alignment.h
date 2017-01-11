@@ -10,7 +10,7 @@
 class GlobalAlignment {
     private:
         float** grid; /*! Contains scores */
-        char** dir; /*! Contains directions of backtracing */
+        char** trace; /*! Contains directions of backtracing */
         const std::string seq1;
         const std::string seq2;
 
@@ -22,7 +22,7 @@ class GlobalAlignment {
         GlobalAlignment(const std::string& seq1, const std::string& seq2);
         ~GlobalAlignment();
 
-        /*! Returns all alignments for already populated grid and dir matrices */
+        /*! Returns all alignments for already populated grid and trace matrices */
         /*!
           \return vector of alignments with best score
         */
@@ -31,13 +31,19 @@ class GlobalAlignment {
         /*! returns best alignment score (value in right-bottom corner of grid matrx) */
         float get_score();
 
-        /*! runs dynamic Needleman - Wunsch algorithm populating grid and dir matrices */
+        /* runs Needleman - Wunsch algorithm, but populates only grid matrix.
+         * Useful for score_only=True */
+        /*!
+          \param scorer a MatchScorer object
+          \param penalty a linear gap penalty
+        */
+        void populate_matrix_linear_gap_penalty_only_grid(MatchScorer* scorer, float penalty);
+
+        /*! runs dynamic Needleman - Wunsch algorithm populating grid and trace matrices */
         /*!
           \param scorer a MatchScorer object
           \param penalty a linear gap penalty
         */
         void populate_matrix_linear_gap_penalty(MatchScorer* scorer, float penalty);
 };
-
-
 #endif
