@@ -9,6 +9,7 @@
 #include <iostream>
 
 GlobalAlignment::GlobalAlignment(const std::string& seq1, const std::string& seq2) : seq1(seq1), seq2(seq2) {
+    alignments_count = 0;
     unsigned len1 = seq1.size();
     unsigned len2 = seq2.size();
 
@@ -144,19 +145,33 @@ void GlobalAlignment::populate_matrix_linear_gap_penalty(MatchScorer* scorer, fl
     }
 }
 
-std::vector<Alignment> GlobalAlignment::backtrace_alignments() {
+void GlobalAlignment::check_for_new_backtrace(unsigned i) {
+    if (backtraces[i].trace > 0 && alignments_count < MAX_ALIGNMENTS) {
+        alignments[alignments_count].sequence1 = alignments[i].sequence1;
+        alignments[alignments_count].sequence2 = alignments[i].sequence2;
+        alignments[alignments_count].score = alignments[i].score;
+        alignments[alignments_count].begin = alignments[i].begin;
+        alignments[alignments_count].end = alignments[i].end;
+
+        backtraces[alignments_count].i1 = backtraces[i].i1;
+        backtraces[alignments_count].i2 = backtraces[i].i2;
+        backtraces[alignments_count].trace = backtraces[i].trace;
+        alignments_count++;
+        TRACE(std::cout<<"PUSHING TRACE ("<<backtraces[i].i1<<","<<backtraces[i].i2<<") ";)
+    }
+}
+
+void GlobalAlignment::backtrace_alignments() {
     unsigned len1 = seq1.size();
     unsigned len2 = seq2.size();
 
     // for two empty sequences return empty list (as in Bio.pairwise2)
     if (len1 == 0 && len2 == 0) {
-        return std::vector<Alignment>();
+        alignments_count = 0;
+        return;
     }
 
     /* Tracking back best alignments */
-    std::vector<AlignmentBacktrace> backtraces;
-    std::vector<Alignment> alignments;
-
     Alignment initAlignment;
     initAlignment.sequence1 = "";
     initAlignment.sequence2 = "";
@@ -169,50 +184,33 @@ std::vector<Alignment> GlobalAlignment::backtrace_alignments() {
     initBacktrace.i2 = len2-1;
     initBacktrace.trace = trace[len1-1][len2-1];
 
-    backtraces.push_back(initBacktrace);
-    alignments.push_back(initAlignment);
+    backtraces[0] = initBacktrace;
+    alignments[0] = initAlignment;
+    alignments_count = 1;
 
     DEBUG(std::cout<<"Backtracing... "<<std::endl;)
-    for (unsigned i= 0; i < alignments.size(); i++) {
-        TRACE(std::cout<<"(a:"<<alignments.size()<<") ";)
+    for (unsigned i= 0; i < alignments_count; i++) {
+        TRACE(std::cout<<"(a:"<<alignments_count<<") ";)
         TRACE(std::cout<<"i1,i2: ("<<alignments[i].i1<<","<<alignments[i].i2<<") ";)
         while (true) {
             TRACE(std::cout<<alignments[i].trace<<" ";)
             if ((backtraces[i].trace & LEFT_ALIGN) == LEFT_ALIGN) {
                 backtraces[i].trace -= LEFT_ALIGN;
-                if (backtraces[i].trace > 0 && alignments.size() < MAX_ALIGNMENTS) {
-                    AlignmentBacktrace newTrace(backtraces[i]);
-                    Alignment newAlignment(alignments[i]);
-                    alignments.push_back(newAlignment);
-                    backtraces.push_back(newTrace);
-                    TRACE(std::cout<<"PUSHING TRACE ("<<newTrace.i1<<","<<newTrace.i2<<") ";)
-                }
+                check_for_new_backtrace(i);
                 alignments[i].sequence1.push_back('-');
                 alignments[i].sequence2.push_back(seq2[backtraces[i].i2]);
                 backtraces[i].i2--;
             }
             else if ((backtraces[i].trace & UP_ALIGN) == UP_ALIGN) {
                 backtraces[i].trace -= UP_ALIGN;
-                if (backtraces[i].trace > 0 && alignments.size() < MAX_ALIGNMENTS) {
-                    AlignmentBacktrace newTrace(backtraces[i]);
-                    Alignment newAlignment(alignments[i]);
-                    alignments.push_back(newAlignment);
-                    backtraces.push_back(newTrace);
-                    TRACE(std::cout<<"PUSHING TRACE ("<<newTrace.i1<<","<<newTrace.i2<<") ";)
-                }
+                check_for_new_backtrace(i);
                 alignments[i].sequence1.push_back(seq1[backtraces[i].i1]);
                 alignments[i].sequence2.push_back('-');
                 backtraces[i].i1--;
             }
-            else { //alignments[i].trace contains DIAG_ALIGN
+            else { //backtraces[i].trace contains DIAG_ALIGN
                 backtraces[i].trace -= DIAG_ALIGN;
-                if (backtraces[i].trace > 0 && alignments.size() < MAX_ALIGNMENTS) {
-                    AlignmentBacktrace newTrace(backtraces[i]);
-                    Alignment newAlignment(alignments[i]);
-                    alignments.push_back(newAlignment);
-                    backtraces.push_back(newTrace);
-                    TRACE(std::cout<<"PUSHING TRACE ("<<newTrace.i1<<","<<newTrace.i2<<") ";)
-                }
+                check_for_new_backtrace(i);
                 alignments[i].sequence1.push_back(seq1[backtraces[i].i1]);
                 alignments[i].sequence2.push_back(seq2[backtraces[i].i2]);
                 backtraces[i].i1--;
@@ -223,15 +221,13 @@ std::vector<Alignment> GlobalAlignment::backtrace_alignments() {
             }
             backtraces[i].trace = trace[backtraces[i].i1][backtraces[i].i2];
         }
-        DEBUG(std::cout<<"PUSHING ALIGNMENT"<<std::endl;)
+        DEBUG(std::cout<<"FINISHED BACKTRACING ALIGNMENT"<<std::endl;)
         std::reverse(alignments[i].sequence1.begin(), alignments[i].sequence1.end());
         std::reverse(alignments[i].sequence2.begin(), alignments[i].sequence2.end());
     }
     DEBUG(
-        if (alignments.size() >= MAX_ALIGNMENTS) {
+        if (alignments_count >= MAX_ALIGNMENTS) {
             std::cout<<"REACHED MAX ALIGNMENTS COUNT"<<std::endl
         }
     )
-
-    return alignments;
 }

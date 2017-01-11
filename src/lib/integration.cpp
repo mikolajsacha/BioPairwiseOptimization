@@ -9,20 +9,20 @@
 using namespace boost::python;
 typedef std::vector<tuple> ATupleCollection;                      
 
-/*! Converts std::vector to python list */
-template<class T>
-list std_vector_to_py_list(const std::vector<T>& v)
-{
-    object get_iter = iterator<std::vector<T> >();
-    object iter = get_iter(v);
-    list l(iter);
-    return l;
-}
-
 /*! Converts an alignment to tuple - Bio.pairwise2 format */
 tuple alignment_to_tuple(const Alignment& a)
 {
     return make_tuple(a.sequence1, a.sequence2, a.score, a.begin, a.end);
+}
+
+/*! Converts alignments array to python list */
+list align_array_to_py_list(Alignment* arr, unsigned length)
+{
+    list l;
+    for (unsigned i = 0; i < length; i++) {
+        l.append(alignment_to_tuple(arr[i]));
+    }
+    return l;
 }
 
 object globalxx(str seq1, str seq2, bool score_only=false) {
@@ -35,13 +35,8 @@ object globalxx(str seq1, str seq2, bool score_only=false) {
         return (object)global_a.get_score();
     }
     global_a.populate_matrix_linear_gap_penalty(&scorer, 0.0);
-    std::vector<Alignment> alignments = global_a.backtrace_alignments();
-    std::vector<tuple> alignments_tuples;
-    for (auto const &alignment : alignments) {
-        alignments_tuples.push_back(alignment_to_tuple
-                (alignment));
-    }
-    return std_vector_to_py_list(alignments_tuples);
+    global_a.backtrace_alignments();
+    return align_array_to_py_list(global_a.alignments, global_a.alignments_count);
 }
 
 BOOST_PYTHON_MODULE(pairwise)

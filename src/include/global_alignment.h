@@ -11,10 +11,15 @@ class GlobalAlignment {
     private:
         float** grid; /*! Contains scores */
         char** trace; /*! Contains directions of backtracing */
+        AlignmentBacktrace backtraces[MAX_ALIGNMENTS]; /*! Will info for backtracing alignments */
         const std::string seq1;
         const std::string seq2;
 
+        void check_for_new_backtrace(unsigned i); /*! Helper method for backtracing */
+
     public: 
+        Alignment alignments[MAX_ALIGNMENTS]; /*! Will contain calculated alignments */
+        unsigned alignments_count; /*! Number of backtracked alignments */
         /*!
           \param seq1 first sequence to align
           \param seq2 second sequence to align
@@ -22,11 +27,8 @@ class GlobalAlignment {
         GlobalAlignment(const std::string& seq1, const std::string& seq2);
         ~GlobalAlignment();
 
-        /*! Returns all alignments for already populated grid and trace matrices */
-        /*!
-          \return vector of alignments with best score
-        */
-        std::vector<Alignment> backtrace_alignments();
+        /*! FInds all alignments for already populated grid and trace matrices */
+        void backtrace_alignments();
 
         /*! returns best alignment score (value in right-bottom corner of grid matrx) */
         float get_score();
