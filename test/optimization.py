@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 
 def get_times(our_method, bio_method, seq1, seq2, *args, **kwargs):
-    run_times = 5
+    run_times = 3
     start = timer()
     for _ in xrange(run_times):
         our_method(seq1, seq2, *args, **kwargs)

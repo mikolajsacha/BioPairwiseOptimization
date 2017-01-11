@@ -26,7 +26,6 @@ struct Alignment {
 
 /*! A structure representing state of tracing back an alignment */
 struct AlignmentBacktrace {
-    Alignment alignment;
     int i1; /*!< Current index on first sequence axis */
     int i2; /*!< Current index on second sequence axis */
     char trace; /*< Cached value from trace matrix */

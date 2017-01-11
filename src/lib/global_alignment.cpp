@@ -154,79 +154,84 @@ std::vector<Alignment> GlobalAlignment::backtrace_alignments() {
     }
 
     /* Tracking back best alignments */
-    std::queue<AlignmentBacktrace> backtraces;
+    std::vector<AlignmentBacktrace> backtraces;
     std::vector<Alignment> alignments;
 
+    Alignment initAlignment;
+    initAlignment.sequence1 = "";
+    initAlignment.sequence2 = "";
+    initAlignment.begin = 0;
+    initAlignment.end = len1;
+    initAlignment.score = get_score();
+
     AlignmentBacktrace initBacktrace;
-    initBacktrace.alignment.sequence1 = "";
-    initBacktrace.alignment.sequence2 = "";
-    initBacktrace.alignment.begin = 0;
-    initBacktrace.alignment.end = len1;
-    initBacktrace.alignment.score = get_score();
     initBacktrace.i1 = len1-1;
     initBacktrace.i2 = len2-1;
     initBacktrace.trace = trace[len1-1][len2-1];
-    DEBUG(std::cout<<"Backtracing... "<<std::endl;)
 
-    backtraces.push(initBacktrace);
+    backtraces.push_back(initBacktrace);
+    alignments.push_back(initAlignment);
 
     DEBUG(std::cout<<"Backtracing... "<<std::endl;)
-    while (!backtraces.empty()) {
-        TRACE(std::cout<<"(b:"<<backtraces.size()<<") ";)
-        TRACE(std::cout<<"(f:"<<alignments.size()<<") ";)
-        auto backtrace = backtraces.front();
-        TRACE(std::cout<<"i1,i2: ("<<backtrace.i1<<","<<backtrace.i2<<") ";)
+    for (unsigned i= 0; i < alignments.size(); i++) {
+        TRACE(std::cout<<"(a:"<<alignments.size()<<") ";)
+        TRACE(std::cout<<"i1,i2: ("<<alignments[i].i1<<","<<alignments[i].i2<<") ";)
         while (true) {
-            TRACE(std::cout<<backtrace.trace<<" ";)
-            if ((backtrace.trace & LEFT_ALIGN) == LEFT_ALIGN) {
-                backtrace.trace -= LEFT_ALIGN;
-                if (backtrace.trace > 0) {
-                    AlignmentBacktrace newTrace(backtrace);
+            TRACE(std::cout<<alignments[i].trace<<" ";)
+            if ((backtraces[i].trace & LEFT_ALIGN) == LEFT_ALIGN) {
+                backtraces[i].trace -= LEFT_ALIGN;
+                if (backtraces[i].trace > 0 && alignments.size() < MAX_ALIGNMENTS) {
+                    AlignmentBacktrace newTrace(backtraces[i]);
+                    Alignment newAlignment(alignments[i]);
+                    alignments.push_back(newAlignment);
+                    backtraces.push_back(newTrace);
                     TRACE(std::cout<<"PUSHING TRACE ("<<newTrace.i1<<","<<newTrace.i2<<") ";)
-                    backtraces.push(newTrace);
                 }
-                backtrace.alignment.sequence1.push_back('-');
-                backtrace.alignment.sequence2.push_back(seq2[backtrace.i2]);
-                backtrace.i2--;
+                alignments[i].sequence1.push_back('-');
+                alignments[i].sequence2.push_back(seq2[backtraces[i].i2]);
+                backtraces[i].i2--;
             }
-            else if ((backtrace.trace & UP_ALIGN) == UP_ALIGN) {
-                backtrace.trace -= UP_ALIGN;
-                if (backtrace.trace > 0) {
-                    AlignmentBacktrace newTrace(backtrace);
+            else if ((backtraces[i].trace & UP_ALIGN) == UP_ALIGN) {
+                backtraces[i].trace -= UP_ALIGN;
+                if (backtraces[i].trace > 0 && alignments.size() < MAX_ALIGNMENTS) {
+                    AlignmentBacktrace newTrace(backtraces[i]);
+                    Alignment newAlignment(alignments[i]);
+                    alignments.push_back(newAlignment);
+                    backtraces.push_back(newTrace);
                     TRACE(std::cout<<"PUSHING TRACE ("<<newTrace.i1<<","<<newTrace.i2<<") ";)
-                    backtraces.push(newTrace);
                 }
-                backtrace.alignment.sequence1.push_back(seq1[backtrace.i1]);
-                backtrace.alignment.sequence2.push_back('-');
-                backtrace.i1--;
+                alignments[i].sequence1.push_back(seq1[backtraces[i].i1]);
+                alignments[i].sequence2.push_back('-');
+                backtraces[i].i1--;
             }
-            else { //backtrace.trace contains DIAG_ALIGN
-                backtrace.trace -= DIAG_ALIGN;
-                if (backtrace.trace > 0) {
-                    AlignmentBacktrace newTrace(backtrace);
+            else { //alignments[i].trace contains DIAG_ALIGN
+                backtraces[i].trace -= DIAG_ALIGN;
+                if (backtraces[i].trace > 0 && alignments.size() < MAX_ALIGNMENTS) {
+                    AlignmentBacktrace newTrace(backtraces[i]);
+                    Alignment newAlignment(alignments[i]);
+                    alignments.push_back(newAlignment);
+                    backtraces.push_back(newTrace);
                     TRACE(std::cout<<"PUSHING TRACE ("<<newTrace.i1<<","<<newTrace.i2<<") ";)
-                    backtraces.push(newTrace);
                 }
-                backtrace.alignment.sequence1.push_back(seq1[backtrace.i1]);
-                backtrace.alignment.sequence2.push_back(seq2[backtrace.i2]);
-                backtrace.i1--;
-                backtrace.i2--;
+                alignments[i].sequence1.push_back(seq1[backtraces[i].i1]);
+                alignments[i].sequence2.push_back(seq2[backtraces[i].i2]);
+                backtraces[i].i1--;
+                backtraces[i].i2--;
             }
-            if (backtrace.i1 < 0 || backtrace.i2 < 0) {
+            if (backtraces[i].i1 < 0 || backtraces[i].i2 < 0) {
                 break;
             }
-            backtrace.trace = trace[backtrace.i1][backtrace.i2];
+            backtraces[i].trace = trace[backtraces[i].i1][backtraces[i].i2];
         }
         DEBUG(std::cout<<"PUSHING ALIGNMENT"<<std::endl;)
-        std::reverse(backtrace.alignment.sequence1.begin(), backtrace.alignment.sequence1.end());
-        std::reverse(backtrace.alignment.sequence2.begin(), backtrace.alignment.sequence2.end());
-        alignments.push_back(backtrace.alignment);
-        if (alignments.size() >= MAX_ALIGNMENTS) {
-            DEBUG(std::cout<<"REACHED MAX ALIGNMENTS COUNT"<<std::endl;)
-            break;
-        }
-        backtraces.pop();
+        std::reverse(alignments[i].sequence1.begin(), alignments[i].sequence1.end());
+        std::reverse(alignments[i].sequence2.begin(), alignments[i].sequence2.end());
     }
+    DEBUG(
+        if (alignments.size() >= MAX_ALIGNMENTS) {
+            std::cout<<"REACHED MAX ALIGNMENTS COUNT"<<std::endl
+        }
+    )
 
     return alignments;
 }
