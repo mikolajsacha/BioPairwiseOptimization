@@ -1,12 +1,12 @@
-#include "../include/global_alignment.h"
-#include "../include/match_scorers.h"
 #include "../include/model.h"
 #include "../include/debug.h"
+#include "../include/global_alignment.h"
 #include <vector>
 #include <string>
 #include <queue>
 #include <algorithm>
 #include <iostream>
+#include <thread>
 
 GlobalAlignment::GlobalAlignment(const std::string& seq1, const std::string& seq2) : seq1(seq1), seq2(seq2) {
     alignments_count = 0;
@@ -35,6 +35,87 @@ GlobalAlignment::~GlobalAlignment() {
 
 float GlobalAlignment::get_score() {
     return grid[seq1.size()][seq2.size()];
+}
+
+void GlobalAlignment::populate_grid_first_row(float penalty) {
+    unsigned len1 = seq1.size();
+    for (unsigned i = 1; i <= len1; i++) {
+        grid[i][0] = i * penalty;
+    }
+}
+
+void GlobalAlignment::populate_grid_first_col(float penalty) {
+    unsigned len2 = seq2.size();
+    for (unsigned i = 1; i <= len2; i++) {
+        grid[0][i] = i * penalty;
+    }
+}
+
+void GlobalAlignment::populate_grid_rightwards(MatchScorer* scorer, float penalty) {
+    unsigned len1 = seq1.size();
+    unsigned len2 = seq2.size();
+    unsigned min_len = std::min(len1, len2);
+
+    populate_grid_first_row(penalty);
+
+    for (unsigned i = 1; i <= min_len; i++) {
+        calculate_single_grid_item(i, i, scorer, penalty);
+        semaphore1.notify();
+        for (unsigned j = i + 1; j <= len1; j++) {
+            calculate_single_grid_item(j, i, scorer, penalty);
+        }
+        semaphore2.wait();
+    }
+}
+
+void GlobalAlignment::populate_grid_downwards(MatchScorer* scorer, float penalty) {
+    unsigned len1 = seq1.size();
+    unsigned len2 = seq2.size();
+    unsigned min_len = std::min(len1, len2);
+
+    populate_grid_first_col(penalty);
+
+    for (unsigned i = 1; i <= min_len; i++) {
+        semaphore1.wait();
+        for (unsigned j = i + 1; j <= len2; j++) {
+            calculate_single_grid_item(i, j, scorer, penalty);
+        }
+        semaphore2.notify();
+    }
+}
+
+void GlobalAlignment::calculate_single_grid_item(unsigned i, unsigned j, MatchScorer* scorer, float penalty) {
+    float matchScore = scorer->getScore(seq1[i-1], seq2[j-1]);
+    float diagScore = grid[i-1][j-1] + matchScore;
+    float upScore = grid[i-1][j] + penalty;
+    float leftScore = grid[i][j-1] + penalty;
+    TRACE(std::cout<<"match: "<<matchScore<<", diag: "<<diagScore<<;)
+    TRACE(std::cout<<", up: "<<upScore<<", left: "<<leftScore<<std::endl;)
+
+    if (diagScore >= upScore) {
+        if (diagScore >= leftScore) { 
+            grid[i][j] = diagScore;
+        }
+        else {
+            grid[i][j] = leftScore;
+        }
+    }
+    else { //diagScore < upScore
+        if (upScore >= leftScore) {
+            grid[i][j] = upScore;
+        }
+        else {
+            grid[i][j] = leftScore;
+        }
+    }
+}
+
+void GlobalAlignment::populate_matrix_linear_gap_penalty_only_grid_2_threads(MatchScorer* scorer, float penalty) {
+    DEBUG(std::cout<<"Calculating only grid matrix with 2 threads..."<<std::endl;)
+    grid[0][0] = 0;
+    std::thread t1(&GlobalAlignment::populate_grid_downwards, this, scorer, penalty);
+    populate_grid_rightwards(scorer, penalty);
+    t1.join();
 }
 
 void GlobalAlignment::populate_matrix_linear_gap_penalty_only_grid(MatchScorer* scorer, float penalty) {

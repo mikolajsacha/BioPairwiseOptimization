@@ -3,6 +3,7 @@
 
 #include "match_scorers.h"
 #include "model.h"
+#include "semaphore.h"
 #include <vector>
 #include <string>
 
@@ -15,7 +16,17 @@ class GlobalAlignment {
         const std::string seq1;
         const std::string seq2;
 
-        void check_for_new_backtrace(unsigned i); /*! Helper method for backtracing */
+        /*! Helper methods*/
+        void populate_grid_first_row(float penalty);
+        void populate_grid_first_col(float penalty);
+        void populate_grid_rightwards(MatchScorer* scorer, float penalty);
+        void populate_grid_downwards(MatchScorer* scorer, float penalty);
+        void calculate_single_grid_item(unsigned i, unsigned j, MatchScorer* scorer, float penalty);
+        void check_for_new_backtrace(unsigned i);
+
+        /*! Semaphores for multithreading */
+        Semaphore semaphore1;
+        Semaphore semaphore2;
 
     public: 
         Alignment alignments[MAX_ALIGNMENTS]; /*! Will contain calculated alignments */
@@ -40,6 +51,7 @@ class GlobalAlignment {
           \param penalty a linear gap penalty
         */
         void populate_matrix_linear_gap_penalty_only_grid(MatchScorer* scorer, float penalty);
+        void populate_matrix_linear_gap_penalty_only_grid_2_threads(MatchScorer* scorer, float penalty);
 
         /*! runs dynamic Needleman - Wunsch algorithm populating grid and trace matrices */
         /*!

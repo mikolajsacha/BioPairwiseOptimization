@@ -31,7 +31,7 @@ object globalxx(str seq1, str seq2, bool score_only=false) {
     ConstMatchScorer scorer(1,0);
     GlobalAlignment global_a(seq1_str, seq2_str);
     if (score_only) {
-        global_a.populate_matrix_linear_gap_penalty_only_grid(&scorer, 0.0);
+        global_a.populate_matrix_linear_gap_penalty_only_grid_2_threads(&scorer, 0.0);
         return (object)global_a.get_score();
     }
     global_a.populate_matrix_linear_gap_penalty(&scorer, 0.0);

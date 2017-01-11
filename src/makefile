@@ -1,5 +1,5 @@
 XX=g++
-CXXFLAGS=-std=c++14 -W -Wall -Werror -pedantic -Wextra
+CXXFLAGS=-std=c++14 -pthread -W -Wall -Werror -pedantic -Wextra
 
 ODIR=obj
 LDIR=lib
@@ -13,10 +13,10 @@ PYTHON_INCLUDE = /usr/include/python$(PYTHON_VERSION)
 
 LIBS=-lm
 
-_OBJS = integration.o match_scorers.o global_alignment.o
+_OBJS = integration.o match_scorers.o global_alignment.o semaphore.o
 OBJS = $(patsubst %,$(ODIR)/%,$(_OBJS))
 
-_DEPS = match_scorers.h global_alignment.h model.h debug.h
+_DEPS = match_scorers.h global_alignment.h model.h debug.h semaphore.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
 all: makelib copyfiles
