@@ -30,7 +30,7 @@ def test_sequences_pairs(include_trivial=False):
     """
     test_data = list(get_all_sequences(TEST_DATA_FOLDER))
     if include_trivial:
-        test_data.extend(list(get_all_sequences(TEST_DATA_FOLDER + '/trivial')))
+        test_data.extend(list(get_all_sequences(TEST_DATA_FOLDER + '/other')))
     return test_data
 
 
