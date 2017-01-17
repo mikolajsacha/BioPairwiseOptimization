@@ -34,6 +34,11 @@ class BaseAlignmentTestCase(unittest.TestCase):
                 alignments_fields = [al[j] for al in alignments]
                 self.assertTrue(all_equal(alignments_fields))
 
+    def test_methods_scores(self, methods, *args, **kwargs):
+        """ Test that given methods return same scores """
+        results = [method(*args, **kwargs) for method in methods]
+        self.assertTrue(all_equal(results))
+
     @staticmethod
     def get_test_suite_for_tests(test_case_class, tests):
         """ Forms a test suite out of provided tests """
@@ -54,10 +59,15 @@ class GlobalxxTest(BaseAlignmentTestCase):
         methods = [pairwise2.align.globalxx, opt_pairwise2.align.globalxx]
         self.test_methods_alignments(methods, self.seq1, self.seq2)
 
+    def test_globalxx_score_only(self):
+        """ Test if our and original globalxx give same scores"""
+        methods = [pairwise2.align.globalxx, opt_pairwise2.align.globalxx]
+        self.test_methods_scores(methods, self.seq1, self.seq2, score_only=True)
+
     @staticmethod
     def get_test_suite():
         return BaseAlignmentTestCase.get_test_suite_for_tests(
-                GlobalxxTest, ['test_globalxx']
+                GlobalxxTest, ['test_globalxx', 'test_globalxx_score_only']
                 )
 
 class LocalxxTest(BaseAlignmentTestCase):
@@ -71,10 +81,15 @@ class LocalxxTest(BaseAlignmentTestCase):
         methods = [pairwise2.align.localxx, opt_pairwise2.align.localxx]
         self.test_methods_alignments(methods, self.seq1, self.seq2)
 
+    def test_localxx_score_only(self):
+        """ Test if our and original localxx give same scores"""
+        methods = [pairwise2.align.localxx, opt_pairwise2.align.localxx]
+        self.test_methods_scores(methods, self.seq1, self.seq2, score_only=True)
+
     @staticmethod
     def get_test_suite():
         return BaseAlignmentTestCase.get_test_suite_for_tests(
-                LocalxxTest, ['test_localxx']
+                LocalxxTest, ['test_localxx', 'test_localxx_score_only']
                 )
 
 if __name__ == "__main__":

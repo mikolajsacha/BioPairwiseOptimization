@@ -1,5 +1,6 @@
 from timeit import default_timer as timer
 from Bio import pairwise2
+from lib import optimized_pairwise2
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import os.path
@@ -62,6 +63,14 @@ def run_compare_test(description, compared_methods, *args, **kwargs):
 
 
 if __name__ == "__main__":
-    print("Test Bio.pairwise2 itself...")
-    run_compare_test("Test Bio.pairwise2 itself...", [pairwise2.align.globalxx, pairwise2.align.localxx])
-    run_compare_test("Test Bio.pairwise2 itself (score only)...", [pairwise2.align.globalxx, pairwise2.align.localxx], score_only=True)
+    # print("Test Bio.pairwise2 itself...")
+    # run_compare_test("Test Bio.pairwise2 itself...", [pairwise2.align.globalxx, pairwise2.align.localxx])
+    # run_compare_test("Test Bio.pairwise2 itself (score only)...", [pairwise2.align.globalxx, pairwise2.align.localxx], score_only=True)
+
+    description = "Compare localxx methods (score only)"
+    print(description)
+    run_compare_test(description, [pairwise2.align.localxx, optimized_pairwise2.align.localxx], score_only=True)
+
+    description = "Compare localxx methods (including alignments)"
+    print(description)
+    run_compare_test(description, [pairwise2.align.localxx, optimized_pairwise2.align.localxx])

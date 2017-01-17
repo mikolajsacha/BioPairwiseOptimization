@@ -1,22 +1,22 @@
+import itertools
 import Bio.pairwise2 as pairwise2
 
-def _find_start(score_matrix, align_globally): 
+def _find_start(score_matrix, align_globally, best_score): 
     """Return a list of starting points (score, (row, col)). 
-  
     Indicating every possible place to start the tracebacks. 
     """ 
     nrows, ncols = len(score_matrix), len(score_matrix[0]) 
-    # In this implementation of the global algorithm, the start will always be 
-    # the bottom right corner of the matrix. 
+
     if align_globally: 
-        starts = [(score_matrix[-1][-1], (nrows - 1, ncols - 1))] 
+        return [(score_matrix[-1][-1], (nrows - 1, ncols - 1))]
     else: 
-        starts = [] 
-        for row in range(nrows): 
-            for col in range(ncols): 
-                score = score_matrix[row][col] 
-                starts.append((score, (row, col))) 
-    return starts 
+        # starts = [] 
+        # for row in range(nrows): 
+            # for col in range(ncols): 
+                # score = score_matrix[row][col] 
+                # starts.append((score, (row, col))) 
+        return [(best_score, (row, col)) for row, col in itertools.product(xrange(nrows), xrange(ncols))
+                if score_matrix[row][col] == best_score]
 
 def _align(sequenceA, sequenceB, match_fn, gap_A_fn, gap_B_fn, 
            penalize_extend_when_opening, penalize_end_gaps, 
@@ -54,21 +54,18 @@ def _align(sequenceA, sequenceB, match_fn, gap_A_fn, gap_B_fn,
             penalize_end_gaps, align_globally, score_only) 
     score_matrix, trace_matrix = x 
 
-    # Look for the proper starting point. Get a list of all possible 
-    # starting points. 
-    # We use optimized version here
-    starts = _find_start(score_matrix, align_globally) 
-
     # Find the highest score. 
-    best_score = max(x[0] for x in starts) 
+    nrows, ncols = len(score_matrix), len(score_matrix[0]) 
+    best_score = max(score_matrix[row][col] for row, col in itertools.product(xrange(nrows), xrange(ncols)))
  
     # If they only want the score, then return it. 
     if score_only: 
         return best_score 
- 
-    # Now find all the positions with the best score
-    starts = [(score, pos) for score, pos in starts 
-              if score == best_score]
+
+    # Look for the proper starting point.
+    # Get list of all starting points with best score
+    # We use optimized version here
+    starts = _find_start(score_matrix, align_globally, best_score) 
 
     return pairwise2._recover_alignments(sequenceA, sequenceB, starts, score_matrix, 
                                          trace_matrix, align_globally, gap_char, 
