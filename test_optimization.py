@@ -1,11 +1,10 @@
 from timeit import default_timer as timer
 from Bio import pairwise2
-import pairwise
-from unittests.alignment_test import test_sequences_pairs
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import os.path
 from itertools import cycle
+from testdata.test_sequences import get_test_sequences_pairs
 
 PLOT_SAFE_FOLDER = "plots"
 
@@ -34,7 +33,7 @@ def save_plot(directory, filename):
 
 def run_compare_test(description, compared_methods, *args, **kwargs):
     results = []
-    for s in test_sequences_pairs():
+    for s in get_test_sequences_pairs(['performance']):
         print("Testing {0}...".format(s[0]))
         result = get_times(compared_methods, s[1], s[2], *args, **kwargs)
         results.append(result)
@@ -63,12 +62,6 @@ def run_compare_test(description, compared_methods, *args, **kwargs):
 
 
 if __name__ == "__main__":
-    # print("Running globalxx test (scores only)...")
-    # run_compare_test("globalxx (scores only)", [pairwise.globalxx, pairwise2.align.globalxx], score_only=True)
-
-    # print("Running globalxx test (including alignments backtracking)...")
-    # run_compare_test("globalxx (including alignments)", [pairwise.globalxx, pairwise2.align.globalxx])
-
     print("Test Bio.pairwise2 itself...")
     run_compare_test("Test Bio.pairwise2 itself...", [pairwise2.align.globalxx, pairwise2.align.localxx])
     run_compare_test("Test Bio.pairwise2 itself (score only)...", [pairwise2.align.globalxx, pairwise2.align.localxx], score_only=True)
