@@ -67,10 +67,18 @@ if __name__ == "__main__":
     # run_compare_test("Test Bio.pairwise2 itself...", [pairwise2.align.globalxx, pairwise2.align.localxx])
     # run_compare_test("Test Bio.pairwise2 itself (score only)...", [pairwise2.align.globalxx, pairwise2.align.localxx], score_only=True)
 
-    description = "Compare localxx methods (score only)"
-    print(description)
-    run_compare_test(description, [pairwise2.align.localxx, optimized_pairwise2.align.localxx], score_only=True)
+    # description = "Compare localxx methods (score only)"
+    # print(description)
+    # run_compare_test(description, [pairwise2.align.localxx, optimized_pairwise2.align.localxx], score_only=True)
 
-    description = "Compare localxx methods (including alignments)"
+    # description = "Compare localxx methods (including alignments)"
+    # print(description)
+    # run_compare_test(description, [pairwise2.align.localxx, optimized_pairwise2.align.localxx])
+
+    description = "Compare globalxx methods (score only)"
     print(description)
-    run_compare_test(description, [pairwise2.align.localxx, optimized_pairwise2.align.localxx])
+    run_compare_test(description, [pairwise2.align.globalxx, optimized_pairwise2.align.globalxx], score_only=True)
+
+    description = "Compare globalxx methods (including alignments)"
+    print(description)
+    run_compare_test(description, [pairwise2.align.globalxx, optimized_pairwise2.align.globalxx])
