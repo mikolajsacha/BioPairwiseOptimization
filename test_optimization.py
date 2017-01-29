@@ -1,3 +1,5 @@
+""" Optimization tests in form of graphs. For checking how our optimization performs"""
+
 from timeit import default_timer as timer
 from Bio import pairwise2
 from lib import optimized_pairwise2
@@ -10,9 +12,13 @@ from testdata.test_sequences import get_test_sequences_pairs
 PLOT_SAFE_FOLDER = "plots"
 
 def fullname(o):
-  return o.__module__ + "." + o.__name__
+    """ Returns a full module name of an object"""
+    return o.__module__ + "." + o.__name__
 
 def get_times(methods, seq1, seq2, *args, **kwargs):
+    """ Measures execution times of provided methods for given arguments
+        Returns tuple (length, times), where length = average length of seq1 and seq2
+        (useful in further computation)"""
     run_times = 3
     times = []
 
@@ -28,11 +34,13 @@ def get_times(methods, seq1, seq2, *args, **kwargs):
     return length, times
 
 def save_plot(directory, filename):
+    """ Saves current plot in given directory """
     if not os.path.exists(directory):
         os.makedirs(directory)
     plt.savefig(os.path.join(directory, filename))
 
 def run_compare_test(description, compared_methods, *args, **kwargs):
+    """ Runs test comparing our execution time with original. Plots result as a graph. """
     results = []
     for s in get_test_sequences_pairs(['performance']):
         print("Testing {0}...".format(s[0]))
@@ -63,17 +71,19 @@ def run_compare_test(description, compared_methods, *args, **kwargs):
 
 
 if __name__ == "__main__":
-    # print("Test Bio.pairwise2 itself...")
-    # run_compare_test("Test Bio.pairwise2 itself...", [pairwise2.align.globalxx, pairwise2.align.localxx])
-    # run_compare_test("Test Bio.pairwise2 itself (score only)...", [pairwise2.align.globalxx, pairwise2.align.localxx], score_only=True)
+    # Uncomment/Comment for choosing what to test
 
-    # description = "Compare localxx methods (score only)"
-    # print(description)
-    # run_compare_test(description, [pairwise2.align.localxx, optimized_pairwise2.align.localxx], score_only=True)
+    print("Test Bio.pairwise2 itself...")
+    run_compare_test("Test Bio.pairwise2 itself...", [pairwise2.align.globalxx, pairwise2.align.localxx])
+    run_compare_test("Test Bio.pairwise2 itself (score only)...", [pairwise2.align.globalxx, pairwise2.align.localxx], score_only=True)
 
-    # description = "Compare localxx methods (including alignments)"
-    # print(description)
-    # run_compare_test(description, [pairwise2.align.localxx, optimized_pairwise2.align.localxx])
+    description = "Compare localxx methods (score only)"
+    print(description)
+    run_compare_test(description, [pairwise2.align.localxx, optimized_pairwise2.align.localxx], score_only=True)
+
+    description = "Compare localxx methods (including alignments)"
+    print(description)
+    run_compare_test(description, [pairwise2.align.localxx, optimized_pairwise2.align.localxx])
 
     description = "Compare globalxx methods (score only)"
     print(description)
