@@ -1,4 +1,5 @@
-import random 
+""" Methods for generating random test cases of given lengths. Useful for measuring performance of code """
+import random
 from numpy.random import normal
 from Bio import pairwise2
 import os.path
@@ -7,10 +8,12 @@ TEST_FOLDER = "testdata"
 PROTEIN_ALPHABET = "ACDEFGHIKLMNPQRSTVWY"
 
 def random_char_list(alphabet, length):
+    """ Returns list of characters from given alphabet of given length """
     return [random.choice(alphabet) for _ in xrange(length)]
 
 
 def generate_sample(alphabet, length):
+    """ Generates pair of sequences with some changes between them. """
     seq1 = random_char_list(alphabet, length)
     seq2 = seq1[:]
 
@@ -56,13 +59,15 @@ def generate_sample(alphabet, length):
     return seq1, seq2
 
 def generate_test_samples(count, max_length):
+    """ Generates given number of samples with lengths linearly distributed from 1 to max length """
     diff = max_length/count
     i = int(diff)
     while i <= max_length:
         yield generate_sample(PROTEIN_ALPHABET, i)
         i = int(i + diff)
 
-def safe_samples(directory, samples):
+def save_samples(directory, samples):
+    """ Saves given samples pairs to a directory as .fasta files"""
     for seq1, seq2 in samples:
         seq_name = "generated_" + str(len(seq1))
         filename = seq_name + ".fasta"
@@ -78,6 +83,6 @@ if __name__ == "__main__":
     max_length = raw_input("Insert maximum length of a sample: ")
     max_length = int(max_length)
     samples = generate_test_samples(count, max_length)
-    safe_samples(TEST_FOLDER, samples)
+    save_samples(TEST_FOLDER, samples)
 
 

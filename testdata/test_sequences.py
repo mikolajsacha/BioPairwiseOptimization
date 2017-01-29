@@ -21,7 +21,7 @@ def all_equal(sequence):
 
 
 def get_test_sequences_pairs(include_subfolders=[]):
-    """ Returns generator of all test data (as tuples: (filename, seq1, seq2))"""
+    """ Returns list of all test data (as tuples: (filename, seq1, seq2))"""
     test_data = list(get_all_sequences(TEST_DATA_FOLDER))
     for folder in include_subfolders:
         folder_path = os.path.join(TEST_DATA_FOLDER, folder)

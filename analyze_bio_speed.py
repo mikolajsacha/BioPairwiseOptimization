@@ -1,14 +1,15 @@
+""" Analysis of original Bio.pairwise2 code performance """
 from timeit import default_timer as timer
 from Bio import pairwise2
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
-import os.path
+from Bio.pairwise2 import rint
+
 import test_optimization as optimization
-from itertools import cycle
-from Bio import BiopythonWarning 
 import generate_samples
 
-class timed_align(pairwise2.align.alignment_function):
+
+class TimedAlign(pairwise2.align.alignment_function):
+    """ Executes same alignment code as pairwise2.align, by measures time of its pairs for analysis """
     preparation_time = 0
     make_score_matrix_time = 0
     find_starts_time = 0
@@ -19,20 +20,13 @@ class timed_align(pairwise2.align.alignment_function):
         pairwise2.align.alignment_function.__init__(self, name)
 
     @staticmethod
-    def clear_timers():
-        timed_align.preparation_time = 0
-        timed_align.make_score_matrix_time = 0
-        timed_align.find_starts_time = 0
-        timed_align.filter_starts_time = 0
-        timed_align.alignment_recovery_time = 0
-
-    @staticmethod
     def align_timed(sequenceA, sequenceB, match_fn, gap_A_fn, gap_B_fn, 
                penalize_extend_when_opening, penalize_end_gaps, 
                align_globally, gap_char, force_generic, score_only, 
                one_alignment_only): 
         """Return a list of alignments between two sequences or its score.
-           Save times""" 
+           This method is an exact copy of method from bio.pairwise2.align class.
+           Only difference is that it measures times. """
 
         # preparation -------------------------------------------------
         start = timer()
@@ -52,7 +46,7 @@ class timed_align(pairwise2.align.alignment_function):
         if not isinstance(sequenceB, list): 
             sequenceB = str(sequenceB) 
 
-        timed_align.preparation_time += (timer() - start) * 1000
+        TimedAlign.preparation_time += (timer() - start) * 1000
 
         # making score matrix ----------------------------------------
         start = timer()
@@ -71,7 +65,7 @@ class timed_align(pairwise2.align.alignment_function):
                 penalize_end_gaps, align_globally, score_only) 
         score_matrix, trace_matrix = x 
 
-        timed_align.make_score_matrix_time += (timer() - start) * 1000
+        TimedAlign.make_score_matrix_time += (timer() - start) * 1000
 
         # finding starts ---------------------------------------------
         start = timer()
@@ -82,7 +76,7 @@ class timed_align(pairwise2.align.alignment_function):
         # starting points. 
         starts = pairwise2._find_start(score_matrix, align_globally) 
 
-        timed_align.find_starts_time += (timer() - start) * 1000
+        TimedAlign.find_starts_time += (timer() - start) * 1000
 
         # filtering starts -------------------------------------------
         start = timer()
@@ -99,7 +93,7 @@ class timed_align(pairwise2.align.alignment_function):
         # score. 
         starts = [(score, pos) for score, pos in starts 
                   if rint(abs(score - best_score)) <= rint(tolerance)] 
-        timed_align.filter_starts_time += (timer() - start) * 1000
+        TimedAlign.filter_starts_time += (timer() - start) * 1000
 
         # recovering alignments ---------------------------------------
         start = timer()
@@ -108,31 +102,44 @@ class timed_align(pairwise2.align.alignment_function):
         result = pairwise2._recover_alignments(sequenceA, sequenceB, starts, score_matrix, 
                                     trace_matrix, align_globally, gap_char, 
                                     one_alignment_only, gap_A_fn, gap_B_fn) 
-        timed_align.alignment_recovery_time += (timer() - start) * 1000
+        TimedAlign.alignment_recovery_time += (timer() - start) * 1000
         return result
 
     @staticmethod
-    def total_time():
-        return timed_align.preparation_time + \
-               timed_align.make_score_matrix_time + \
-               timed_align.find_starts_time + \
-               timed_align.filter_starts_time + \
-               timed_align.alignment_recovery_time
+    def clear_timers():
+        """ Clears all timers for measuring execution times of algorithm steps """
+        TimedAlign.preparation_time = 0
+        TimedAlign.make_score_matrix_time = 0
+        TimedAlign.find_starts_time = 0
+        TimedAlign.filter_starts_time = 0
+        TimedAlign.alignment_recovery_time = 0
 
-    def __call__(self, *args, **keywds): 
-                 keywds = self.decode(*args, **keywds) 
-                 return timed_align.align_timed(**keywds) 
+
+    @staticmethod
+    def total_time():
+        """ Returns total measured execution time so far """
+        return TimedAlign.preparation_time + \
+               TimedAlign.make_score_matrix_time + \
+               TimedAlign.find_starts_time + \
+               TimedAlign.filter_starts_time + \
+               TimedAlign.alignment_recovery_time
+
+    def __call__(self, *args, **keywds):
+        """ Overridden method from Bio.pairwise2 align class"""
+        keywds = self.decode(*args, **keywds)
+        return TimedAlign.align_timed(**keywds)
 
 
 
 def draw_bar_chart(description):
+    """ Plots bar chart of execution times measured so far by TimedAlign class """
     fig, ax = plt.subplots()
-    values = [timed_align.preparation_time, timed_align.make_score_matrix_time,
-              timed_align.find_starts_time, timed_align.filter_starts_time,
-              timed_align.alignment_recovery_time]
+    values = [TimedAlign.preparation_time, TimedAlign.make_score_matrix_time,
+              TimedAlign.find_starts_time, TimedAlign.filter_starts_time,
+              TimedAlign.alignment_recovery_time]
     descriptions = ["Preparation", "Score matrix", "Find start", "Filter start", "Recover alignments"]
     width = 0.5
-    rects = ax.bar(xrange(5), values, width, color='r', tick_label=descriptions)
+    ax.bar(xrange(5), values, width, color='r', tick_label=descriptions)
 
     plt.title(description)
     plt.ylabel('Execution time (ms)')
@@ -144,31 +151,32 @@ def draw_bar_chart(description):
     plt.show()
 
 def perform_test(seq_len, seq_pairs, method_name, description, *args, **kwargs):
+    """ Performs full analysis of execution time for given sequence pairs"""
     print("-"*20)
     print(description)
-    print("Using sequences of length ~ {0}".format(seq_len))
-    timed_align.clear_timers()
-    align = timed_align(method_name)
+    TimedAlign.clear_timers()
+    align = TimedAlign(method_name)
     for seq1, seq2 in seq_pairs:
         alignments = align(seq1, seq2, *args, **kwargs)
 
     seq_count = float(len(seq_pairs))
-    timed_align.preparation_time /= seq_count
-    timed_align.make_score_matrix_time /= seq_count
-    timed_align.find_starts_time /= seq_count
-    timed_align.filter_starts_time /= seq_count
-    timed_align.alignment_recovery_time /= seq_count
+    TimedAlign.preparation_time /= seq_count
+    TimedAlign.make_score_matrix_time /= seq_count
+    TimedAlign.find_starts_time /= seq_count
+    TimedAlign.filter_starts_time /= seq_count
+    TimedAlign.alignment_recovery_time /= seq_count
 
-    total_time = timed_align.total_time()
+    total_time = TimedAlign.total_time()
     print("-"*20)
     print("Total time: {:4.2f} ms".format(total_time))
     print("-"*20)
-    print("Preparation: {:4.2f} ms".format(timed_align.preparation_time))
-    print("Making score and trace matrices: {:4.2f} ms".format(timed_align.make_score_matrix_time))
-    print("Finding possible starts: {:4.2f} ms".format(timed_align.find_starts_time))
-    print("Filtering starts: {:4.2f} ms".format(timed_align.filter_starts_time))
-    print("Recovering alignment: {:4.2f} ms".format(timed_align.alignment_recovery_time))
+    print("Preparation: {:4.2f} ms".format(TimedAlign.preparation_time))
+    print("Making score and trace matrices: {:4.2f} ms".format(TimedAlign.make_score_matrix_time))
+    print("Finding possible starts: {:4.2f} ms".format(TimedAlign.find_starts_time))
+    print("Filtering starts: {:4.2f} ms".format(TimedAlign.filter_starts_time))
+    print("Recovering alignment: {:4.2f} ms".format(TimedAlign.alignment_recovery_time))
     draw_bar_chart(description)
+    print("")
 
 if __name__ == "__main__":
     print("Testing how much time each part of algorithm takes in Bio.pairwise2...")
